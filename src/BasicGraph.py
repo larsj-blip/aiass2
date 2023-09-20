@@ -16,7 +16,7 @@ class BasicGraph:
     def __post_init__(self):
         self.construct_graph()
 
-    def get_cost(self, position1, position2):
+    def get_cost(self, position):
         pass
 
     def construct_graph(self):
@@ -55,14 +55,14 @@ class BasicGraph:
 @dataclass
 class GraphWithUnifomCost(BasicGraph):
 
-    def get_cost(self, position1, position2):
+    def get_cost(self, position):
         return 1
 
 
 @dataclass
 class GraphWithVariableCost(BasicGraph):
 
-    def get_cost(self, source_position, destination_position) -> int:
+    def get_cost(self, destination_position) -> int:
         vertex = self.vertices[destination_position]
         return vertex.vertex_type
 

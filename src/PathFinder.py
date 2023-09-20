@@ -56,15 +56,14 @@ class PathFinder:
             for neighbor_location in self.samf_graph.get_neighbors(Coordinate.from_string(current_node_coordinates)):
                 cost = self.get_cost_of_moving_to_neighbor(
                     accumulated_cost_for_node, current_node_coordinates, neighbor_location)
-                if not (self.has_visited_location(accumulated_cost_for_node, neighbor_location)
-                        or cost < accumulated_cost_for_node[neighbor_location]):
+                if neighbor_location not in accumulated_cost_for_node or cost < accumulated_cost_for_node[neighbor_location]:
                     accumulated_cost_for_node[neighbor_location] = cost
                     frontier.put(
                         self.create_entry_in_priority_queue(cost, neighbor_location)
                     )
                     path_from_goal_coordinate[neighbor_location] = current_node_coordinates
-            self.solution_path = path_from_goal_coordinate
-            self.solution_cost = accumulated_cost_for_node[self.get_goal_position().to_string()]
+        self.solution_path = path_from_goal_coordinate
+        self.solution_cost = accumulated_cost_for_node[self.get_goal_position().to_string()]
 
     def has_visited_location(self, accumulated_cost_for_node, neighbor_location):
         return neighbor_location not in accumulated_cost_for_node
@@ -81,10 +80,9 @@ class PathFinder:
         return (self.heuristic_function(Coordinate.from_string(neighbor_location)) + cost, neighbor_location)
 
     def get_cost_of_moving_to_neighbor(self, accumulated_cost_from_start_node_to_specified_node,
-                                       current_node_coordinates:str, neighbor_location:str):
+                                       current_node_coordinates: str, neighbor_location: str):
         return accumulated_cost_from_start_node_to_specified_node[
-            current_node_coordinates] + self.samf_graph.get_cost(
-            current_node_coordinates, neighbor_location)
+            current_node_coordinates] + self.samf_graph.get_cost(neighbor_location)
 
     def heuristic_function(self, location: Coordinate) -> int:
         x_distance = abs(self.get_goal_position().x - location.x)
