@@ -25,9 +25,15 @@ class BasicGraph:
             for y_index, element in enumerate(row):
                 vertex = Vertex(element, Coordinate(x_index, y_index))
                 if vertex.is_walkable():
-                    self.vertices[vertex.location.to_string()] = vertex
-                    self.edges[vertex.location.to_string()] = self.get_valid_neighbors_within_the_map(vertex.location,
-                                                                                                      self.map_as_multidimension_array)
+                    self.add_vertex_to_hashmap_of_vertices(vertex)
+                    self.add_valid_neighbors_to_hashmap_of_edges(vertex)
+
+    def add_valid_neighbors_to_hashmap_of_edges(self, vertex):
+        self.edges[vertex.location.to_string()] = self.get_valid_neighbors_within_the_map(vertex.location,
+                                                                                          self.map_as_multidimension_array)
+
+    def add_vertex_to_hashmap_of_vertices(self, vertex):
+        self.vertices[vertex.location.to_string()] = vertex
 
     def get_valid_neighbors_within_the_map(self, location: Coordinate, samf_map) -> List[str]:
         valid_moves = [(0, 1), (0, -1), (-1, 0), (1, 0)]

@@ -1,5 +1,6 @@
-import copy
-from collections import deque
+# A* algorithm based on redblobgames' implementation. Can be found at: https://www.redblobgames.com/pathfinding/a-star/implementation.py
+
+
 from dataclasses import dataclass, field
 from queue import PriorityQueue
 
@@ -26,9 +27,6 @@ class PathFinder:
         elif self.task >= 3:
             self.samf_graph = GraphWithVariableCost(self.samf_map_helper.int_map)
 
-    def get_current_position(self):
-        return copy.deepcopy(self.current_position)
-
     def get_start_position(self) -> Coordinate:
         coordinates_as_list = self.samf_map_helper.get_start_pos()
         return self.create_coordinate_from_list(coordinates_as_list)
@@ -49,14 +47,14 @@ class PathFinder:
         path_from_goal_coordinate = {self.get_start_position().to_string(): None}
 
         while frontier.qsize() != 0:
-            current_node_coordinates = frontier.get()[1]
+            current_node_coordinates = self.expand_node_with_lowest_cost(frontier)
             if current_node_coordinates == self.get_goal_position().to_string():
                 break
 
             for neighbor_location in self.samf_graph.get_neighbors(Coordinate.from_string(current_node_coordinates)):
                 cost = self.get_cost_of_moving_to_neighbor(
                     accumulated_cost_for_node, current_node_coordinates, neighbor_location)
-                if neighbor_location not in accumulated_cost_for_node or cost < accumulated_cost_for_node[neighbor_location]:
+                if not self.node_visited(accumulated_cost_for_node, neighbor_location) or self.is_shorter_path_to_node(accumulated_cost_for_node, cost, neighbor_location):
                     accumulated_cost_for_node[neighbor_location] = cost
                     frontier.put(
                         self.create_entry_in_priority_queue(cost, neighbor_location)
@@ -65,7 +63,13 @@ class PathFinder:
         self.solution_path = path_from_goal_coordinate
         self.solution_cost = accumulated_cost_for_node[self.get_goal_position().to_string()]
 
-    def has_visited_location(self, accumulated_cost_for_node, neighbor_location):
+    def expand_node_with_lowest_cost(self, frontier):
+        return frontier.get()[1]
+
+    def is_shorter_path_to_node(self, accumulated_cost_for_node, cost, neighbor_location):
+        return cost < accumulated_cost_for_node[neighbor_location]
+
+    def node_visited(self, accumulated_cost_for_node, neighbor_location):
         return neighbor_location not in accumulated_cost_for_node
 
     def draw_path(self):
@@ -77,14 +81,14 @@ class PathFinder:
         self.samf_map_helper.show_map()
 
     def create_entry_in_priority_queue(self, cost, neighbor_location):
-        return (self.heuristic_function(Coordinate.from_string(neighbor_location)) + cost, neighbor_location)
+        return (self.manhattan_distance_heuristic(Coordinate.from_string(neighbor_location)) + cost, neighbor_location)
 
     def get_cost_of_moving_to_neighbor(self, accumulated_cost_from_start_node_to_specified_node,
                                        current_node_coordinates: str, neighbor_location: str):
         return accumulated_cost_from_start_node_to_specified_node[
             current_node_coordinates] + self.samf_graph.get_cost(neighbor_location)
 
-    def heuristic_function(self, location: Coordinate) -> int:
+    def manhattan_distance_heuristic(self, location: Coordinate) -> int:
         x_distance = abs(self.get_goal_position().x - location.x)
         y_distance = abs(self.get_goal_position().y - location.y)
         return x_distance + y_distance
